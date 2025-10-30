@@ -10,5 +10,5 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 add_executable(Engine ${SOURCES})
 
-target_include_directories(Engine PUBLIC ${CMAKE_SOURCE_DIR}/include/ecs)
+target_include_directories(Engine PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(Engine PUBLIC external_libs)
