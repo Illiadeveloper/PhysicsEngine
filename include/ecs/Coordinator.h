@@ -21,6 +21,11 @@ class Coordinator {
     void RegisterComponent() {
       mComponentManager->RegisterComponent<T>();
     }
+    
+    template<typename T> //
+    std::shared_ptr<T> GetSystem() {
+      return mSystemManager->GetSystem<T>();
+    }
 
     template<typename T> //
     void AddComponent(Entity entity, T component) {

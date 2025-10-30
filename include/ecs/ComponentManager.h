@@ -1,28 +1,31 @@
 #pragma once
 #include "Types.h"
 #include "ComponentArray.h"
+#include <typeindex>
 
 class ComponentManager {
 public:
   template <typename T> //
   void RegisterComponent() {
-    const char *typeName = typeid(T).name();
+    std::type_index typeIndex(typeid(T));
 
-    assert(mComponentTypes.find(typeName) == mComponentTypes.end() &&
+    assert(mComponentTypes.find(typeIndex) == mComponentTypes.end() &&
            "Registering component type more than once!!");
-    mComponentTypes.insert({typeName, mNextComponentType});
-    mComponentArrays.insert({typeName, std::make_shared<ComponentArray<T>>()});
+    mComponentTypes.insert({typeIndex, mNextComponentType});
+    mComponentArrays.insert({typeIndex, std::make_shared<ComponentArray<T>>()});
 
     ++mNextComponentType;
   }
+
   template <typename T> //
   ComponentType GetComponentType() {
-    const char *typeName = typeid(T).name();
+    std::type_index typeIndex(typeid(T));
 
-    assert(mComponentTypes.find(typeName) != mComponentTypes.end() &&
+    assert(mComponentTypes.find(typeIndex) != mComponentTypes.end() &&
            "Component not registered before use!!");
-    return mComponentTypes[typeName];
+    return mComponentTypes[typeIndex];
   }
+
   template <typename T> //
   void AddComponent(Entity entity, T component) {
     GetComponentArray<T>()->InsertData(entity, component);
@@ -39,7 +42,7 @@ public:
     return GetComponentArray<T>()->GetData(entity);
   }
 
-  void EntityDestoyed(Entity entity) {
+  void EntityDestroyed(Entity entity) {
     for (auto const &pair : mComponentArrays) {
       auto const &component = pair.second;
 
@@ -48,18 +51,18 @@ public:
   }
 
 private:
-  std::unordered_map<const char *, ComponentType> mComponentTypes{};
-  std::unordered_map<const char *, std::shared_ptr<IComponentArray>>
+  std::unordered_map<std::type_index, ComponentType> mComponentTypes{};
+  std::unordered_map<std::type_index, std::shared_ptr<IComponentArray>>
       mComponentArrays{};
   ComponentType mNextComponentType{};
 
   template <typename T> //
   std::shared_ptr<ComponentArray<T>> GetComponentArray() {
-    const char *typeName = typeid(T).name();
-    assert(mComponentTypes.find(typeName) != mComponentTypes.end() &&
+    std::type_index typeIndex(typeid(T));
+    assert(mComponentTypes.find(typeIndex) != mComponentTypes.end() &&
            "Component not registered before use!!");
     return std::static_pointer_cast<ComponentArray<T>>(
-        mComponentArrays[typeName]);
+        mComponentArrays[typeIndex]);
   }
 };
 

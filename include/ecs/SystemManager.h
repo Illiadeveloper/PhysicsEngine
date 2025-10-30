@@ -1,30 +1,41 @@
 #pragma once
 #include "Types.h"
+#include <memory>
+#include <typeindex>
 
 class System {
 public:
   std::set<Entity> mEntities;
+  virtual ~System() = default;
 };
 
 class SystemManager {
 public:
   template <typename T> //
   std::shared_ptr<T> RegisterSystem() {
-    const char *typeName = typeid(T).name();
+    std::type_index typeIndex(typeid(T));
 
-    assert(mSystems.find(typeName) == mSystems.end() &&
+    assert(mSystems.find(typeIndex) == mSystems.end() &&
            "Registering system more than once!!");
     auto system = std::make_shared<T>();
-    mSystems.insert({typeName, system});
+    mSystems.insert({typeIndex, system});
     return system;
   }
 
   template<typename T>
   void SetSignature(Signature signature) {
-    const char* typeName = typeid(T).name();
+    std::type_index typeIndex(typeid(T));
 
-		assert(mSystems.find(typeName) != mSystems.end() && "System used before registered!!");
-    mSignatures.insert({typeName, signature});
+		assert(mSystems.find(typeIndex) != mSystems.end() && "System used before registered!!");
+    mSignatures.insert({typeIndex, signature});
+  }
+  
+  template<typename T>
+  std::shared_ptr<T> GetSystem() {
+    std::type_index typeIndex(typeid(T));
+
+    assert(mSystems.find(typeIndex) != mSystems.end() && "System used before registered!!");
+    return std::dynamic_pointer_cast<T>(mSystems[typeIndex]);
   }
 
   void EntityDestroyed(Entity entity) {
@@ -33,6 +44,7 @@ public:
       system->mEntities.erase(entity);
     }
   }
+
   void EntitySignatureChanged(Entity entity, Signature entitySignature) {
     for(auto const& pair : mSystems) {
       auto const& type = pair.first;
@@ -48,7 +60,7 @@ public:
   }
 
 private:
-  std::unordered_map<const char*, Signature> mSignatures{};
-  std::unordered_map<const char*, std::shared_ptr<System>> mSystems{};
+  std::unordered_map<std::type_index, Signature> mSignatures{};
+  std::unordered_map<std::type_index, std::shared_ptr<System>> mSystems{};
 };
 
