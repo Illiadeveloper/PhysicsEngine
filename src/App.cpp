@@ -2,7 +2,9 @@
 #include "GLFW/glfw3.h"
 #include "components/MeshComponent.h"
 #include "components/ShaderComponent.h"
+#include "components/TransformComponent.h"
 #include "ecs/Types.h"
+#include "glm/ext/vector_float3.hpp"
 #include "managers/MeshManager.h"
 #include "managers/ShaderManager.h"
 #include "systems/RenderSystem.h"
@@ -49,12 +51,14 @@ void App::ECSInit() {
   mCoordinator.Init();
   mCoordinator.RegisterComponent<MeshComponent>();
   mCoordinator.RegisterComponent<ShaderComponent>();
+  mCoordinator.RegisterComponent<TransformComponent>();
 
   mCoordinator.RegisterSystem<RenderSystem>();
 
   Signature signature;
   signature.set(mCoordinator.GetComponentType<MeshComponent>());
   signature.set(mCoordinator.GetComponentType<ShaderComponent>());
+  signature.set(mCoordinator.GetComponentType<TransformComponent>());
   mCoordinator.SetSystemSignature<RenderSystem>(signature);
 }
 
@@ -68,7 +72,7 @@ App::~App() {
 void App::Run() {
   MeshManager meshManager;
   ShaderManager shaderManager;
-  
+
   auto renderer = mCoordinator.GetSystem<RenderSystem>();
 
   Entity entity = mCoordinator.CreateEntity();
@@ -77,8 +81,13 @@ void App::Run() {
   mCoordinator.AddComponent(entity, ShaderComponent{shaderManager.LoadShader(
                                         "resources/shaders/default.frag",
                                         "resources/shaders/default.vert")});
+  mCoordinator.AddComponent(entity,
+                            TransformComponent{
+                                glm::vec3{0.0f, 0.0f, 0.f},
+                                glm::vec3{1.0f, 1.0f, 0.0f},
+                            });
 
-  while (!glfwWindowShouldClose(mWindow)) {
+      while (!glfwWindowShouldClose(mWindow)) {
     float currentTime = glfwGetTime();
     float deltaTime = currentTime - mLastFrameTime;
     mLastFrameTime = currentTime;

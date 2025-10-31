@@ -27,6 +27,7 @@ with basic rendering, transformations, and physical interactions.
 - **Language:** C++
 - **Graphics API:** OpenGL  
 - **Build System:** CMake  
+- **Architecture:** ECS
 
 ---
 

@@ -1,4 +1,5 @@
 #include "managers/ShaderManager.h"
+#include "glm/detail/qualifier.hpp"
 #include "render/Mesh.h"
 #include <fstream>
 #include <iostream>
@@ -40,6 +41,11 @@ ShaderManager::~ShaderManager() {
   for(int i = 0; i < mIds.size(); ++i) {
     glDeleteProgram(mIds[i]);
   }
+}
+
+void ShaderManager::SetMat4(ShaderId id, const std::string& name, const glm::mat4& matrix) {
+  GLuint matrixLoc = glGetUniformLocation(id, name.c_str());
+  glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
 std::string ShaderManager::GetFileContext(const std::string &path) {
