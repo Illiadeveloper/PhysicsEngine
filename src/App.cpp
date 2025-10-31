@@ -1,5 +1,6 @@
 #include "App.h"
 #include "GLFW/glfw3.h"
+#include "components/CameraComponent.h"
 #include "components/MeshComponent.h"
 #include "components/ShaderComponent.h"
 #include "components/TransformComponent.h"
@@ -7,6 +8,7 @@
 #include "glm/ext/vector_float3.hpp"
 #include "managers/MeshManager.h"
 #include "managers/ShaderManager.h"
+#include "systems/CameraSystem.h"
 #include "systems/RenderSystem.h"
 #include <GL/gl.h>
 #include <iostream>
@@ -52,14 +54,22 @@ void App::ECSInit() {
   mCoordinator.RegisterComponent<MeshComponent>();
   mCoordinator.RegisterComponent<ShaderComponent>();
   mCoordinator.RegisterComponent<TransformComponent>();
+  mCoordinator.RegisterComponent<CameraComponent>();
 
   mCoordinator.RegisterSystem<RenderSystem>();
 
-  Signature signature;
-  signature.set(mCoordinator.GetComponentType<MeshComponent>());
-  signature.set(mCoordinator.GetComponentType<ShaderComponent>());
-  signature.set(mCoordinator.GetComponentType<TransformComponent>());
-  mCoordinator.SetSystemSignature<RenderSystem>(signature);
+  Signature RenderSignature;
+  RenderSignature.set(mCoordinator.GetComponentType<MeshComponent>());
+  RenderSignature.set(mCoordinator.GetComponentType<ShaderComponent>());
+  RenderSignature.set(mCoordinator.GetComponentType<TransformComponent>());
+  mCoordinator.SetSystemSignature<RenderSystem>(RenderSignature);
+
+  mCoordinator.RegisterSystem<CameraSystem>();
+
+  Signature CameraSignature;
+  CameraSignature.set(mCoordinator.GetComponentType<CameraComponent>());
+  CameraSignature.set(mCoordinator.GetComponentType<TransformComponent>());
+  mCoordinator.SetSystemSignature<CameraSystem>(CameraSignature);
 }
 
 App::~App() {
@@ -74,6 +84,12 @@ void App::Run() {
   ShaderManager shaderManager;
 
   auto renderer = mCoordinator.GetSystem<RenderSystem>();
+  auto cameraSystem = mCoordinator.GetSystem<CameraSystem>();
+
+  Entity camera = mCoordinator.CreateEntity();
+  mCoordinator.AddComponent(camera, TransformComponent{});
+  mCoordinator.AddComponent(camera, CameraComponent{});
+  mCoordinator.GetComponent<CameraComponent>(camera).mPitch = 0.5f;
 
   Entity entity = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(entity, MeshComponent{meshManager.LoadMesh(
@@ -81,13 +97,9 @@ void App::Run() {
   mCoordinator.AddComponent(entity, ShaderComponent{shaderManager.LoadShader(
                                         "resources/shaders/default.frag",
                                         "resources/shaders/default.vert")});
-  mCoordinator.AddComponent(entity,
-                            TransformComponent{
-                                glm::vec3{0.0f, 0.0f, 0.f},
-                                glm::vec3{1.0f, 1.0f, 0.0f},
-                            });
+  mCoordinator.AddComponent(entity, TransformComponent{});
 
-      while (!glfwWindowShouldClose(mWindow)) {
+  while (!glfwWindowShouldClose(mWindow)) {
     float currentTime = glfwGetTime();
     float deltaTime = currentTime - mLastFrameTime;
     mLastFrameTime = currentTime;
@@ -95,7 +107,12 @@ void App::Run() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    renderer->Update(mCoordinator, meshManager, shaderManager);
+    cameraSystem->Update(mCoordinator, deltaTime);
+
+    renderer->Update(
+        mCoordinator, meshManager, shaderManager,
+        cameraSystem->GetView(mCoordinator),
+        cameraSystem->GetProjection(mCoordinator, (float)mWidth / mHeight));
 
     glfwSwapBuffers(mWindow);
     glfwPollEvents();
