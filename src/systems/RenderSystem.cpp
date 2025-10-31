@@ -21,12 +21,13 @@ void RenderSystem::Update(Coordinator &coordinator, MeshManager &meshManager,
     auto &shaderComponent = coordinator.GetComponent<ShaderComponent>(entity);
     auto &transformComponent =
         coordinator.GetComponent<TransformComponent>(entity);
-
+    
+    shaderManager.BindShader(shaderComponent.mId);
     shaderManager.SetMat4(shaderComponent.mId, "uModel",
                           GetTransformMatrix(transformComponent));
 
     auto mesh = meshManager.GetMesh(meshComponent.mId);
-    shaderManager.BindShader(shaderComponent.mId);
     mesh->Draw();
+    shaderManager.UnbindShader();
   }
 }
