@@ -18,6 +18,10 @@ public:
     mComponentArray[newIndex] = component;
     mSize++;
   }
+  
+  bool HasData(Entity entity) {
+    return mEntityToIndexMap.find(entity) != mEntityToIndexMap.end();
+  }
 
   void RemoveData(Entity entity) {
     assert(mEntityToIndexMap.find(entity) != mEntityToIndexMap.end() &&

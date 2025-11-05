@@ -2,6 +2,7 @@
 #include "SystemManager.h"
 #include "EntityManager.h"
 #include "ComponentManager.h"
+#include "ecs/Types.h"
 class Coordinator {
   public:
     void Init() {
@@ -36,6 +37,11 @@ class Coordinator {
       mEntityManager->SetSignature(entity, signature);
 
       mSystemManager->EntitySignatureChanged(entity, signature);
+    }
+    
+    template<typename T> //
+    bool HasComponent(Entity entity) {
+      return mComponentManager->HasComponent<T>(entity);
     }
 
     template<typename T> //

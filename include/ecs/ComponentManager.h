@@ -31,6 +31,11 @@ public:
     GetComponentArray<T>()->InsertData(entity, component);
   }
 
+  template<typename T> //
+  bool HasComponent(Entity entity) {
+    return GetComponentArray<T>()->HasData(entity);
+  }
+
 	template<typename T> //
 	void RemoveComponent(Entity entity)
 	{
