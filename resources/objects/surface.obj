@@ -1,0 +1,22 @@
+# Flat surface (square) centered at origin, lying on Y = 0
+
+o Plane
+
+# Vertices (positions)
+v  0.5  0.0  0.5   # 1
+v -0.5  0.0  0.5   # 2
+v -0.5  0.0 -0.5   # 3
+v  0.5  0.0 -0.5   # 4
+
+# Texture coordinates
+vt 0.0 0.0   # 1
+vt 1.0 0.0   # 2
+vt 1.0 1.0   # 3
+vt 0.0 1.0   # 4
+
+# Normals (facing up)
+vn  0.0  1.0  0.0  # 1
+
+# Two triangles
+f 1/1/1 2/2/1 3/3/1
+f 1/1/1 3/3/1 4/4/1

@@ -53,32 +53,3 @@ void CameraSystem::UploadToUBO(Coordinator &coordinator,
     break;
   }
 }
-//
-// glm::mat4 CameraSystem::GetView(Coordinator &coordinator) {
-//   for (auto const &entity : mEntities) {
-//     auto &camera = coordinator.GetComponent<CameraComponent>(entity);
-//     if (!camera.mActive)
-//       continue;
-//
-//     auto &transform = coordinator.GetComponent<TransformComponent>(entity);
-//
-//     return glm::lookAt(transform.mPosition, camera.mTarget,
-//                        glm::vec3(0.0f, 1.0f, 0.0f));
-//   }
-//   return glm::mat4(1.0f);
-// }
-//
-// glm::mat4 CameraSystem::GetProjection(Coordinator &coordinator,
-//                                       float aspectRatio) {
-//   for (auto const &entity : mEntities) {
-//     auto &camera = coordinator.GetComponent<CameraComponent>(entity);
-//     if (!camera.mActive)
-//       continue;
-//
-//     auto &transform = coordinator.GetComponent<TransformComponent>(entity);
-//
-//     return glm::perspective(glm::radians(camera.mFov), aspectRatio,
-//                             camera.mNearPlane, camera.mFarPlane);
-//   }
-//   return glm::mat4(1.0f);
-// }

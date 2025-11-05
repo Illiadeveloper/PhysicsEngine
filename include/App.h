@@ -4,12 +4,13 @@
 //
 #include "GLFW/glfw3.h"
 #include "ecs/Coordinator.h"
+#include "managers/UniformBufferManager.h"
 #include <stdexcept>
 
 class App {
 public:
   App(int width, int height, const char *title);
-  void ECSInit();
+  void Init();
   ~App();
   void Run();
   
@@ -23,6 +24,7 @@ private:
   static void framebuffer_size_callback(GLFWwindow *window, int width,
                                         int heiht);
 
+  UniformBufferManager mUniformManager;
   GLFWwindow *mWindow;
   Coordinator mCoordinator;
 };

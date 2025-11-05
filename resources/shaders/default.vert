@@ -1,13 +1,24 @@
-#version 330 core
+#version 420 core
 layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNormal;
+
+layout(std140, binding = 0) uniform CameraUBO {
+  mat4 view;
+  mat4 projection;
+  vec3 cameraPos;
+} camera;
 
 uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProjection;
 
 out vec3 outPos;
+out vec3 outNormal;
 
 void main() {
-  outPos = aPos;
-  gl_Position = uProjection * uView *uModel * vec4(aPos, 1.0f);
+  vec4 worldPos = uModel * vec4(aPos, 1.0);
+  outPos = worldPos.xyz;
+
+  mat3 normalMatrix = transpose(inverse(mat3(uModel)));
+  outNormal = normalize(normalMatrix * aNormal);
+
+  gl_Position = camera.projection * camera.view * worldPos;
 }

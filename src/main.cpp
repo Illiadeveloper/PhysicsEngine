@@ -17,7 +17,7 @@
 
 int main (int argc, char *argv[]) {
   App app = App(800, 800, "ECS");
-  app.ECSInit();
+  app.Init();
   app.Run();
   return 0;
 }
