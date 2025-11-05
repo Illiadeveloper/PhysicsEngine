@@ -12,6 +12,5 @@ class RenderSystem : public System {
 public:
   glm::mat4 GetTransformMatrix(TransformComponent transform);
   void Update(Coordinator &coordinator, MeshManager &meshManager,
-              ShaderManager &shaderManager, const glm::mat4 &view,
-              const glm::mat4 &projection);
+              ShaderManager &shaderManager);
 };

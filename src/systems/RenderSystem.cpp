@@ -1,9 +1,11 @@
 #include "systems/RenderSystem.h"
+#include "components/LightComponent.h"
 #include "components/TransformComponent.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/fwd.hpp"
 #include <iostream>
+#include <memory>
 
 glm::mat4 RenderSystem::GetTransformMatrix(TransformComponent transform) {
   glm::mat4 model(1.0f);
@@ -16,8 +18,8 @@ glm::mat4 RenderSystem::GetTransformMatrix(TransformComponent transform) {
 }
 
 void RenderSystem::Update(Coordinator &coordinator, MeshManager &meshManager,
-                          ShaderManager &shaderManager, const glm::mat4 &view,
-                          const glm::mat4 &projection) {
+                          ShaderManager &shaderManager) {
+
   for (auto const &entity : mEntities) {
     auto &meshComponent = coordinator.GetComponent<MeshComponent>(entity);
     auto &shaderComponent = coordinator.GetComponent<ShaderComponent>(entity);
@@ -25,10 +27,13 @@ void RenderSystem::Update(Coordinator &coordinator, MeshManager &meshManager,
         coordinator.GetComponent<TransformComponent>(entity);
 
     shaderManager.BindShader(shaderComponent.mId);
+    // ====== VERTEX SHADER ======
     shaderManager.SetMat4(shaderComponent.mId, "uModel",
                           GetTransformMatrix(transformComponent));
-    shaderManager.SetMat4(shaderComponent.mId, "uView", view);
-    shaderManager.SetMat4(shaderComponent.mId, "uProjection", projection);
+
+    // ====== FRAG SHADER ==============
+    shaderManager.SetVec3(shaderComponent.mId, "uObjectColor",
+                          shaderComponent.mObjectColor);
 
     auto mesh = meshManager.GetMesh(meshComponent.mId);
     mesh->Draw();
