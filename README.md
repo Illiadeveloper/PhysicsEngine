@@ -1,4 +1,4 @@
-# Physics Engine (v0.1)
+# Physics Engine (v0.2)
 
 🚧 **Work in Progress**  
 This is an early-stage prototype of a small **Physics Engine** built with **C++** and **OpenGL**.  
@@ -14,8 +14,6 @@ with basic rendering, transformations, and physical interactions.
 ---
 
 ## 🏗️ Planned Features (v1.0)
-- [ ] Transform system (position, rotation, scale)
-- [ ] Camera
 - [ ] Texture support
 - [ ] Collisions
 - [ ] Gravity
@@ -32,8 +30,9 @@ with basic rendering, transformations, and physical interactions.
 ---
 
 ## 🚀 Current Stage
-Version `0.1` — architecture design, initial code structure, and base classes.  
-No rendering or physics yet.
+Version `0.2` — architecture design, initial code structure, and base classes.  
+- **Rendering**
+- **Simple Light**
 
 ---
 
