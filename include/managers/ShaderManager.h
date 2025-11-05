@@ -18,6 +18,7 @@ public:
   void UnbindShader();
 
   void SetMat4(ShaderId id, const std::string &name, const glm::mat4 &matrix);
+  void SetVec3(ShaderId id, const std::string &name, const glm::vec3 &vec);
 
   GLint GetUniformLocation(ShaderId id, const std::string& name);
 
