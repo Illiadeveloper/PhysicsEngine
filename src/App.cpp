@@ -122,7 +122,7 @@ void App::Run() {
   mCoordinator.AddComponent(surface, MeshComponent{meshManager.LoadMesh(
                                          "resources/objects/surface.obj")});
   mCoordinator.AddComponent(surface, ShaderComponent{shaderManager.LoadShader(
-                                         "resources/shaders/cube1.frag",
+                                         "resources/shaders/default.frag",
                                          "resources/shaders/default.vert"),
       glm::vec3(0.3f, 0.3f, 0.3f)});
   mCoordinator.AddComponent(
@@ -134,7 +134,7 @@ void App::Run() {
       cube1, MeshComponent{meshManager.LoadMesh("resources/objects/cube.obj")});
   mCoordinator.AddComponent(
       cube1, ShaderComponent{
-                 shaderManager.LoadShader("resources/shaders/cube1.frag",
+                 shaderManager.LoadShader("resources/shaders/default.frag",
                                           "resources/shaders/default.vert"),
                  glm::vec3(0.5f, 0.5f, 1.0f)});
   mCoordinator.AddComponent(cube1,
@@ -145,7 +145,7 @@ void App::Run() {
       cube2, MeshComponent{meshManager.LoadMesh("resources/objects/cube.obj")});
   mCoordinator.AddComponent(
       cube2, ShaderComponent{
-                 shaderManager.LoadShader("resources/shaders/cube1.frag",
+                 shaderManager.LoadShader("resources/shaders/default.frag",
                                           "resources/shaders/default.vert"),
                  glm::vec3(1.0f, 0.5f, 0.5f)});
   mCoordinator.AddComponent(cube2,

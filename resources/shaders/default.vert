@@ -12,6 +12,7 @@ uniform mat4 uModel;
 
 out vec3 outPos;
 out vec3 outNormal;
+out vec3 outCameraPos;
 
 void main() {
   vec4 worldPos = uModel * vec4(aPos, 1.0);
@@ -19,6 +20,8 @@ void main() {
 
   mat3 normalMatrix = transpose(inverse(mat3(uModel)));
   outNormal = normalize(normalMatrix * aNormal);
+
+  outCameraPos = camera.cameraPos;
 
   gl_Position = camera.projection * camera.view * worldPos;
 }
