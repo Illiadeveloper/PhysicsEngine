@@ -113,7 +113,7 @@ void App::Run() {
   auto renderer = mCoordinator.GetSystem<RenderSystem>();
   auto cameraSystem = mCoordinator.GetSystem<CameraSystem>();
   auto lightSystem = mCoordinator.GetSystem<LightSystem>();
-  auto materialSystem = mCoordinator.GetSystem<MaterialSystem>();
+  // auto materialSystem = mCoordinator.GetSystem<MaterialSystem>();
 
   auto shader = shaderManager.LoadShader("resources/shaders/default.frag",
                                          "resources/shaders/default.vert");
@@ -125,6 +125,7 @@ void App::Run() {
   auto material =
       MaterialComponent{glm::vec3(0.1f), glm::vec3(1.0f),
                         glm::vec3(0.1f), 64.0f};
+  auto cubeMaterial = MaterialComponent{glm::vec3(0.02, 0.17, 0.02), glm::vec3(0.07, 0.6, 0.07), glm::vec3(0.6, 0.7, 0.6), 0.6};
   // ======== CAMERA =======
   Entity camera = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(camera, TransformComponent{});
@@ -159,7 +160,7 @@ void App::Run() {
       cube1, ShaderComponent{shader, glm::vec3(0.5f, 0.5f, 1.0f)});
   mCoordinator.AddComponent(cube1,
                             TransformComponent{glm::vec3(2.0f, 0.0f, 0.0f)});
-  mCoordinator.AddComponent(cube1, material);
+  mCoordinator.AddComponent(cube1, cubeMaterial);
 
   // ======= CUBE 2 ============
   Entity cube2 = mCoordinator.CreateEntity();
@@ -171,7 +172,7 @@ void App::Run() {
                             TransformComponent{glm::vec3(-2.0f, 0.0f, 0.0f)});
   mCoordinator.AddComponent(cube2, material);
 
-  materialSystem->Update(mCoordinator, mUniformManager);
+  // materialSystem->Update(mCoordinator, mUniformManager);
   while (!glfwWindowShouldClose(mWindow)) {
     float currentTime = glfwGetTime();
     float deltaTime = currentTime - mLastFrameTime;
@@ -184,7 +185,7 @@ void App::Run() {
     cameraSystem->Update(mCoordinator, deltaTime);
     cameraSystem->UploadToUBO(mCoordinator, mUniformManager,
                               (float)mWidth / mHeight);
-    renderer->Update(mCoordinator, meshManager, shaderManager);
+    renderer->Update(mCoordinator, meshManager, shaderManager, mUniformManager);
 
     glfwSwapBuffers(mWindow);
     glfwPollEvents();

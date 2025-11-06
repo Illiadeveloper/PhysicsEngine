@@ -1,9 +1,13 @@
 #include "systems/RenderSystem.h"
 #include "components/LightComponent.h"
+#include "components/MaterialComponent.h"
 #include "components/TransformComponent.h"
+#include "ecs/Coordinator.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/fwd.hpp"
+#include "managers/UniformBufferManager.h"
+#include "render/uniforms/MaterialUBO.h"
 #include <iostream>
 #include <memory>
 
@@ -17,8 +21,18 @@ glm::mat4 RenderSystem::GetTransformMatrix(TransformComponent transform) {
   return model;
 }
 
+void RenderSystem::SetMaterial(UniformBufferManager &uboManager, MaterialComponent material) {
+  MaterialUBO data{};
+  data.ambient = material.ambient;
+  data.diffuse = material.diffuse;
+  data.specular = material.specular;
+  data.shininess = material.shininess;
+  uboManager.UpdateUBO("Material", data);
+}
+
 void RenderSystem::Update(Coordinator &coordinator, MeshManager &meshManager,
-                          ShaderManager &shaderManager) {
+                          ShaderManager &shaderManager,
+                          UniformBufferManager &uboManager) {
 
   for (auto const &entity : mEntities) {
     auto &meshComponent = coordinator.GetComponent<MeshComponent>(entity);
@@ -27,6 +41,10 @@ void RenderSystem::Update(Coordinator &coordinator, MeshManager &meshManager,
         coordinator.GetComponent<TransformComponent>(entity);
 
     shaderManager.BindShader(shaderComponent.mId);
+    if(coordinator.HasComponent<MaterialComponent>(entity)) {
+      auto &material = coordinator.GetComponent<MaterialComponent>(entity);
+      SetMaterial(uboManager, material);
+    }
     // ====== VERTEX SHADER ======
     shaderManager.SetMat4(shaderComponent.mId, "uModel",
                           GetTransformMatrix(transformComponent));
@@ -36,6 +54,7 @@ void RenderSystem::Update(Coordinator &coordinator, MeshManager &meshManager,
                           shaderComponent.mObjectColor);
 
     auto mesh = meshManager.GetMesh(meshComponent.mId);
+
     mesh->Draw();
     shaderManager.UnbindShader();
   }
