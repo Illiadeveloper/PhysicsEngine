@@ -2,6 +2,7 @@
 #include "GLFW/glfw3.h"
 #include "components/CameraComponent.h"
 #include "components/LightComponent.h"
+#include "components/MaterialComponent.h"
 #include "components/MeshComponent.h"
 #include "components/ShaderComponent.h"
 #include "components/TransformComponent.h"
@@ -11,8 +12,10 @@
 #include "managers/ShaderManager.h"
 #include "render/uniforms/CameraUBO.h"
 #include "render/uniforms/LightUBO.h"
+#include "render/uniforms/MaterialUBO.h"
 #include "systems/CameraSystem.h"
 #include "systems/LightSystem.h"
+#include "systems/MaterialSystem.h"
 #include "systems/RenderSystem.h"
 #include <GL/gl.h>
 #include <iostream>
@@ -61,6 +64,7 @@ void App::framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 void App::Init() {
   mUniformManager.CreateUBO<CameraUBO>("Camera", 0);
   mUniformManager.CreateUBO<LightUBO>("Light", 1);
+  mUniformManager.CreateUBO<MaterialUBO>("Material", 2);
 
   mCoordinator.Init();
   mCoordinator.RegisterComponent<MeshComponent>();
@@ -68,6 +72,7 @@ void App::Init() {
   mCoordinator.RegisterComponent<TransformComponent>();
   mCoordinator.RegisterComponent<CameraComponent>();
   mCoordinator.RegisterComponent<LightComponent>();
+  mCoordinator.RegisterComponent<MaterialComponent>();
 
   mCoordinator.RegisterSystem<RenderSystem>();
   Signature RenderSignature;
@@ -87,6 +92,11 @@ void App::Init() {
   LightSignature.set(mCoordinator.GetComponentType<LightComponent>());
   LightSignature.set(mCoordinator.GetComponentType<TransformComponent>());
   mCoordinator.SetSystemSignature<LightSystem>(LightSignature);
+
+  mCoordinator.RegisterSystem<MaterialSystem>();
+  Signature MaterialSignature;
+  MaterialSignature.set(mCoordinator.GetComponentType<MaterialComponent>());
+  mCoordinator.SetSystemSignature<MaterialSystem>(MaterialSignature);
 }
 
 App::~App() {
@@ -103,7 +113,19 @@ void App::Run() {
   auto renderer = mCoordinator.GetSystem<RenderSystem>();
   auto cameraSystem = mCoordinator.GetSystem<CameraSystem>();
   auto lightSystem = mCoordinator.GetSystem<LightSystem>();
+  auto materialSystem = mCoordinator.GetSystem<MaterialSystem>();
 
+  auto shader = shaderManager.LoadShader("resources/shaders/default.frag",
+                                         "resources/shaders/default.vert");
+
+  // auto material =
+  //     MaterialComponent{glm::vec3(0.02, 0.17, 0.02), glm::vec3(0.07, 0.6, 0.07),
+                        // glm::vec3(0.6, 0.7, 0.6), 0.6};
+
+  auto material =
+      MaterialComponent{glm::vec3(0.1f), glm::vec3(1.0f),
+                        glm::vec3(0.1f), 64.0f};
+  // ======== CAMERA =======
   Entity camera = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(camera, TransformComponent{});
   mCoordinator.AddComponent(camera, CameraComponent{});
@@ -112,45 +134,44 @@ void App::Run() {
   mCoordinator.GetComponent<CameraComponent>(camera).mDistance = 10.0f;
   mCoordinator.GetComponent<CameraComponent>(camera).mFov = 60.0f;
 
+  // ======= LIGHT =======
   Entity light = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(light,
                             LightComponent{glm::vec3(1.0f, 1.0f, 1.0f), 1.0f});
   mCoordinator.AddComponent(light,
                             TransformComponent{glm::vec3(0.0f, 2.0f, 1.0f)});
-  //
+  // ====== PLACE ======
   Entity surface = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(surface, MeshComponent{meshManager.LoadMesh(
                                          "resources/objects/surface.obj")});
-  mCoordinator.AddComponent(surface, ShaderComponent{shaderManager.LoadShader(
-                                         "resources/shaders/default.frag",
-                                         "resources/shaders/default.vert"),
-      glm::vec3(0.3f, 0.3f, 0.3f)});
+  mCoordinator.AddComponent(
+      surface, ShaderComponent{shader, glm::vec3(0.3f, 0.3f, 0.3f)});
+
   mCoordinator.AddComponent(
       surface, TransformComponent{glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f),
                                   glm::vec3(7.0f)});
-  
+  mCoordinator.AddComponent(surface, material);
+  // ====== CUBE 1 ======
   Entity cube1 = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(
       cube1, MeshComponent{meshManager.LoadMesh("resources/objects/cube.obj")});
   mCoordinator.AddComponent(
-      cube1, ShaderComponent{
-                 shaderManager.LoadShader("resources/shaders/default.frag",
-                                          "resources/shaders/default.vert"),
-                 glm::vec3(0.5f, 0.5f, 1.0f)});
+      cube1, ShaderComponent{shader, glm::vec3(0.5f, 0.5f, 1.0f)});
   mCoordinator.AddComponent(cube1,
                             TransformComponent{glm::vec3(2.0f, 0.0f, 0.0f)});
+  mCoordinator.AddComponent(cube1, material);
 
+  // ======= CUBE 2 ============
   Entity cube2 = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(
       cube2, MeshComponent{meshManager.LoadMesh("resources/objects/cube.obj")});
   mCoordinator.AddComponent(
-      cube2, ShaderComponent{
-                 shaderManager.LoadShader("resources/shaders/default.frag",
-                                          "resources/shaders/default.vert"),
-                 glm::vec3(1.0f, 0.5f, 0.5f)});
+      cube2, ShaderComponent{shader, glm::vec3(1.0f, 0.5f, 0.5f)});
   mCoordinator.AddComponent(cube2,
                             TransformComponent{glm::vec3(-2.0f, 0.0f, 0.0f)});
+  mCoordinator.AddComponent(cube2, material);
 
+  materialSystem->Update(mCoordinator, mUniformManager);
   while (!glfwWindowShouldClose(mWindow)) {
     float currentTime = glfwGetTime();
     float deltaTime = currentTime - mLastFrameTime;
