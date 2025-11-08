@@ -10,7 +10,7 @@ layout(std140, binding = 1) uniform DirectionalLightUBO {
 
   vec3 lightColor;
   float intensity;
-} DirectionalLight 
+} DirectionalLight;
 
 layout(std140, binding = 2) uniform PointLightUBO {
   vec3 position;
@@ -36,7 +36,7 @@ layout(std140, binding = 3) uniform SpotLightUBO {
 
   vec3 lightColor;
   float intensity;
-} PointLight;
+} SpotLight;
 
 layout(std140, binding = 4) uniform MaterialUBO {
   vec3 ambient;
@@ -66,20 +66,20 @@ void main() {
   // result = clamp(result, 0.0, 1.0);
   // FragColor = vec4(result, 1.0);
 
-  vec3 ambient = material.ambient * light.lightColor * light.intensity;
-  
-  // Diffuse 
-  vec3 norm = normalize(outNormal);
-  vec3 lightDir = normalize(light.direction);
-  float diff = max(dot(norm, lightDir), 0.0);
-  vec3 diffuse = (material.diffuse * diff) * light.lightColor * light.intensity;
-  
-  // Specular
-  vec3 viewDir = normalize(outCameraPos - outPos);
-  vec3 reflectDir = reflect(-lightDir, norm);
-  float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-  vec3 specular = material.specular * spec * light.lightColor * light.intensity;
-
-  vec3 result = (ambient + diffuse + specular) * uObjectColor;
-  FragColor = vec4(result, 1.0);
+  // vec3 ambient = material.ambient * light.lightColor * light.intensity;
+  // 
+  // // Diffuse 
+  // vec3 norm = normalize(outNormal);
+  // vec3 lightDir = normalize(light.direction);
+  // float diff = max(dot(norm, lightDir), 0.0);
+  // vec3 diffuse = (material.diffuse * diff) * light.lightColor * light.intensity;
+  // 
+  // // Specular
+  // vec3 viewDir = normalize(outCameraPos - outPos);
+  // vec3 reflectDir = reflect(-lightDir, norm);
+  // float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+  // vec3 specular = material.specular * spec * light.lightColor * light.intensity;
+  //
+  // vec3 result = (ambient + diffuse + specular) * uObjectColor;
+  FragColor = vec4(vec3(1.0), 1.0);
 }

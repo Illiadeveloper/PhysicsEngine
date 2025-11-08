@@ -4,7 +4,6 @@
 #include "managers/UniformBufferManager.h"
 #include "components/SpotLightComponent.h"
 #include "components/TransformComponent.h"
-#include "render/uniforms/LightUBO.h"
 
 class SpotLightSystem : public System {
   public:

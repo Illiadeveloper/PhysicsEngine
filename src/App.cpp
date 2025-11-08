@@ -1,23 +1,31 @@
 #include "App.h"
 #include "GLFW/glfw3.h"
 #include "components/CameraComponent.h"
-#include "components/LightComponent.h"
+#include "components/DirectionalLightComponent.h"
 #include "components/MaterialComponent.h"
 #include "components/MeshComponent.h"
+#include "components/PointLightComponent.h"
 #include "components/ShaderComponent.h"
+#include "components/SpotLightComponent.h"
 #include "components/TransformComponent.h"
 #include "ecs/Types.h"
 #include "glm/ext/vector_float3.hpp"
 #include "managers/MeshManager.h"
 #include "managers/ShaderManager.h"
 #include "render/uniforms/CameraUBO.h"
-#include "render/uniforms/LightUBO.h"
+#include "render/uniforms/DirectionalLightUBO.h"
 #include "render/uniforms/MaterialUBO.h"
+#include "render/uniforms/PointLightUBO.h"
+#include "render/uniforms/SpotLightUBO.h"
 #include "systems/CameraSystem.h"
-#include "systems/LightSystem.h"
+#include "systems/DirectionalLightSystem.h"
+#include "systems/PointLightSystem.h"
 #include "systems/RenderSystem.h"
+#include "systems/SpotLightSystem.h"
 #include <GL/gl.h>
+#include <X11/XKBlib.h>
 #include <iostream>
+#include <sys/ucontext.h>
 
 App::App(int width, int height, const char *title)
     : mWidth(width), mHeight(height), mLastFrameTime(0) {
@@ -62,16 +70,21 @@ void App::framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 
 void App::Init() {
   mUniformManager.CreateUBO<CameraUBO>("Camera", 0);
-  mUniformManager.CreateUBO<LightUBO>("Light", 1);
-  mUniformManager.CreateUBO<MaterialUBO>("Material", 2);
+  mUniformManager.CreateUBO<DirectionalLightUBO>("DirectionalLight", 1);
+  mUniformManager.CreateUBO<PointLightUBO>("PointLight", 2);
+  mUniformManager.CreateUBO<SpotLightUBO>("SpotLight", 3);
+  mUniformManager.CreateUBO<MaterialUBO>("Material", 4);
 
   mCoordinator.Init();
   mCoordinator.RegisterComponent<MeshComponent>();
   mCoordinator.RegisterComponent<ShaderComponent>();
   mCoordinator.RegisterComponent<TransformComponent>();
   mCoordinator.RegisterComponent<CameraComponent>();
-  mCoordinator.RegisterComponent<LightComponent>();
   mCoordinator.RegisterComponent<MaterialComponent>();
+
+  mCoordinator.RegisterComponent<DirectionalLightComponent>();
+  mCoordinator.RegisterComponent<PointLightComponent>();
+  mCoordinator.RegisterComponent<SpotLightComponent>();
 
   mCoordinator.RegisterSystem<RenderSystem>();
   Signature RenderSignature;
@@ -86,11 +99,24 @@ void App::Init() {
   CameraSignature.set(mCoordinator.GetComponentType<TransformComponent>());
   mCoordinator.SetSystemSignature<CameraSystem>(CameraSignature);
 
-  mCoordinator.RegisterSystem<LightSystem>();
-  Signature LightSignature;
-  LightSignature.set(mCoordinator.GetComponentType<LightComponent>());
-  LightSignature.set(mCoordinator.GetComponentType<TransformComponent>());
-  mCoordinator.SetSystemSignature<LightSystem>(LightSignature);
+  mCoordinator.RegisterSystem<DirectionalLightSystem>();
+  Signature DirectionalLightSignature;
+  DirectionalLightSignature.set(
+      mCoordinator.GetComponentType<DirectionalLightComponent>());
+  mCoordinator.SetSystemSignature<DirectionalLightSystem>(
+      DirectionalLightSignature);
+
+  mCoordinator.RegisterSystem<PointLightSystem>();
+  Signature PointLightSignature;
+  PointLightSignature.set(mCoordinator.GetComponentType<PointLightComponent>());
+  PointLightSignature.set(mCoordinator.GetComponentType<TransformComponent>());
+  mCoordinator.SetSystemSignature<PointLightSystem>(PointLightSignature);
+
+  mCoordinator.RegisterSystem<SpotLightSystem>();
+  Signature SpotLightSignature;
+  SpotLightSignature.set(mCoordinator.GetComponentType<SpotLightComponent>());
+  SpotLightSignature.set(mCoordinator.GetComponentType<TransformComponent>());
+  mCoordinator.SetSystemSignature<SpotLightSystem>(SpotLightSignature);
 }
 
 App::~App() {
@@ -106,19 +132,18 @@ void App::Run() {
 
   auto renderer = mCoordinator.GetSystem<RenderSystem>();
   auto cameraSystem = mCoordinator.GetSystem<CameraSystem>();
-  auto lightSystem = mCoordinator.GetSystem<LightSystem>();
-  // auto materialSystem = mCoordinator.GetSystem<MaterialSystem>();
+
+  auto directionalLightSystem =
+      mCoordinator.GetSystem<DirectionalLightSystem>();
+  auto pointLightSystem = mCoordinator.GetSystem<PointLightSystem>();
+  auto spotLightSystem = mCoordinator.GetSystem<SpotLightSystem>();
 
   auto shader = shaderManager.LoadShader("resources/shaders/default.frag",
                                          "resources/shaders/default.vert");
   auto lightShader = shaderManager.LoadShader("resources/shaders/light.frag",
                                               "resources/shaders/default.vert");
 
-                     // auto material =
-                     //     MaterialComponent{glm::vec3(0.02, 0.17, 0.02),
-                     //     glm::vec3(0.07, 0.6, 0.07),
-                     // glm::vec3(0.6, 0.7, 0.6), 0.6};
-                     auto surfaceMaterial =
+  auto surfaceMaterial =
       MaterialComponent{glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.5, 0.5, 0.5),
                         glm::vec3(0.7, 0.7, 0.7), 25};
   auto material = MaterialComponent{glm::vec3(0.1f), glm::vec3(1.0f),
@@ -137,14 +162,20 @@ void App::Run() {
   mCoordinator.GetComponent<CameraComponent>(camera).mFov = 60.0f;
 
   // ======= LIGHT =======
+  // Entity light = mCoordinator.CreateEntity();
+  // mCoordinator.AddComponent(light,
+  //                           LightComponent{glm::vec3(1.0f, 0.7f,
+  //                           0.1f), 1.0f});
+  // mCoordinator.AddComponent(
+  //     light,
+  //     MeshComponent{meshManager.LoadMesh("resources/objects/cube.obj")});
+  // mCoordinator.AddComponent(light, ShaderComponent{lightShader});
+  // mCoordinator.AddComponent(light,
+  //                           TransformComponent{glm::vec3(0.0f, 2.0f, 1.0f)});
   Entity light = mCoordinator.CreateEntity();
-  mCoordinator.AddComponent(light,
-                            LightComponent{glm::vec3(1.0f, 0.7f, 0.1f), 1.0f});
   mCoordinator.AddComponent(
-      light, MeshComponent{meshManager.LoadMesh("resources/objects/cube.obj")});
-  mCoordinator.AddComponent(light, ShaderComponent{lightShader});
-  mCoordinator.AddComponent(light,
-                            TransformComponent{glm::vec3(0.0f, 2.0f, 1.0f)});
+      light, DirectionalLightComponent{glm::vec3(1.0f, 0.7f, 0.1f),
+                                       glm::vec3(1.0f, 0.5f, 0.5f)});
 
   // ====== PLACE ======
   Entity surface = mCoordinator.CreateEntity();
@@ -185,7 +216,10 @@ void App::Run() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    lightSystem->Update(mCoordinator, mUniformManager);
+    directionalLightSystem->Update(mCoordinator, mUniformManager);
+    pointLightSystem->Update(mCoordinator, mUniformManager);
+    spotLightSystem->Update(mCoordinator, mUniformManager);
+
     cameraSystem->Update(mCoordinator, deltaTime);
     cameraSystem->UploadToUBO(mCoordinator, mUniformManager,
                               (float)mWidth / mHeight);

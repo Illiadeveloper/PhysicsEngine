@@ -1,5 +1,4 @@
 #include "systems/RenderSystem.h"
-#include "components/LightComponent.h"
 #include "components/MaterialComponent.h"
 #include "components/TransformComponent.h"
 #include "ecs/Coordinator.h"
