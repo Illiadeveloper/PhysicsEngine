@@ -5,12 +5,21 @@ in vec3 outPos;
 in vec3 outNormal;
 in vec3 outCameraPos;
 
-layout(std140, binding = 1) uniform DirectionalLightUBO {
+#define MAX_DIRECTIONALS 4
+#define MAX_POINTS 16
+#define MAX_SPOTS 16
+
+struct DirectionalLightData {
   vec3 direction;
 
   vec3 lightColor;
   float intensity;
-} DirectionalLight;
+};
+
+layout(std140, binding = 1) uniform DirectionalLightUBO {
+  int directionalLightsCount; // x = ligthCount
+  DirectionalLightData directionalLights[MAX_DIRECTIONALS];
+};
 
 layout(std140, binding = 2) uniform PointLightUBO {
   vec3 position;
@@ -47,19 +56,19 @@ layout(std140, binding = 4) uniform MaterialUBO {
 
 uniform vec3 uObjectColor;
 
-vec3 CalcDirectionalLight(vec3 normal, vec3 viewDir) {
-    vec3 lightDir = normalize(-DirectionalLight.direction);
-    // diffuse
-    float diff = max(dot(normal, lightDir), 0.0);
-    // specular
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    // combine
-    vec3 ambient = material.ambient * DirectionalLight.lightColor * DirectionalLight.intensity;
-    vec3 diffuse = material.diffuse * diff * DirectionalLight.lightColor * DirectionalLight.intensity;
-    vec3 specular = material.specular * spec * DirectionalLight.lightColor * DirectionalLight.intensity;
+vec3 CalcDirectionalLight(DirectionalLightData light, vec3 normal, vec3 viewDir) {
+  vec3 lightDir = normalize(-light.direction);
+  // diffuse
+  float diff = max(dot(normal, lightDir), 0.0);
+  // specular
+  vec3 reflectDir = reflect(-lightDir, normal);
+  float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+  // combine
+  vec3 ambient = material.ambient * light.lightColor * light.intensity;
+  vec3 diffuse = material.diffuse * diff * light.lightColor * light.intensity;
+  vec3 specular = material.specular * spec * light.lightColor * light.intensity;
 
-    return (ambient + diffuse + specular) * uObjectColor;
+  return (ambient + diffuse + specular) * uObjectColor;
 }
 
 vec3 CalcPointLight(vec3 normal, vec3 fragPos, vec3 viewDir) {
@@ -114,9 +123,12 @@ void main() {
   vec3 norm = normalize(outNormal);
   vec3 viewDir = normalize(outCameraPos - outPos);
 
-  vec3 result = CalcDirectionalLight(norm, viewDir);
-  result += CalcPointLight(norm, outPos, viewDir);
-  result += CalcSpotLight(norm, outPos, viewDir);
+  vec3 result = vec3(0.0);
+  for(int i = 0; i < directionalLightsCount; ++i) {
+    result += CalcDirectionalLight(directionalLights[i], norm, viewDir);
+  }
+  // result += CalcPointLight(norm, outPos, viewDir);
+  // result += CalcSpotLight(norm, outPos, viewDir);
 
   FragColor = vec4(result, 1.0);
 }

@@ -166,11 +166,17 @@ void App::Run() {
   mCoordinator.GetComponent<CameraComponent>(camera).mFov = 60.0f;
 
   // ======= LIGHT =======
-  Entity directionalLight = mCoordinator.CreateEntity();
+  Entity directionalLight1 = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(
-      directionalLight,
+      directionalLight1,
       DirectionalLightComponent{glm::vec3(1.0f, -1.0f, 0.0f),
                                 glm::vec3(0.8f, 0.2f, 0.2f), 0.5f});
+
+  Entity directionalLight2 = mCoordinator.CreateEntity();
+  mCoordinator.AddComponent(
+      directionalLight2,
+      DirectionalLightComponent{glm::vec3(-1.0f, -1.0f, 0.0f),
+                                glm::vec3(0.2f, 0.2f, 0.8f), 0.5f});
 
   Entity pointLight = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(
