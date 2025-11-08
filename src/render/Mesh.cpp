@@ -46,5 +46,4 @@ void Mesh::SetupMesh() {
   glEnableVertexAttribArray(2);
 
   glBindVertexArray(0);
-
 }

@@ -1,19 +1,16 @@
 #pragma once
 
 #include "glm/ext/vector_float3.hpp"
-struct LightUBO {
+struct PointLightUBO {
   alignas(16) glm::vec3 position;
-  float intensity;
-
-  alignas(16) glm::vec3 direction;
-  float cutOff;
+  float linear;
 
   alignas(16) glm::vec3 lightColor;
-  float outerCutOff;
+  float intensity;
 
   float constant;
-  float linear;
   float quadratic;
 
-  float _padding;
+  float _padding1;
+  float _padding2;
 };

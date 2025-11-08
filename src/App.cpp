@@ -15,7 +15,6 @@
 #include "render/uniforms/MaterialUBO.h"
 #include "systems/CameraSystem.h"
 #include "systems/LightSystem.h"
-#include "systems/MaterialSystem.h"
 #include "systems/RenderSystem.h"
 #include <GL/gl.h>
 #include <iostream>
@@ -92,11 +91,6 @@ void App::Init() {
   LightSignature.set(mCoordinator.GetComponentType<LightComponent>());
   LightSignature.set(mCoordinator.GetComponentType<TransformComponent>());
   mCoordinator.SetSystemSignature<LightSystem>(LightSignature);
-
-  mCoordinator.RegisterSystem<MaterialSystem>();
-  Signature MaterialSignature;
-  MaterialSignature.set(mCoordinator.GetComponentType<MaterialComponent>());
-  mCoordinator.SetSystemSignature<MaterialSystem>(MaterialSignature);
 }
 
 App::~App() {
@@ -117,15 +111,22 @@ void App::Run() {
 
   auto shader = shaderManager.LoadShader("resources/shaders/default.frag",
                                          "resources/shaders/default.vert");
+  auto lightShader = shaderManager.LoadShader("resources/shaders/light.frag",
+                                              "resources/shaders/default.vert");
 
-  // auto material =
-  //     MaterialComponent{glm::vec3(0.02, 0.17, 0.02), glm::vec3(0.07, 0.6, 0.07),
-                        // glm::vec3(0.6, 0.7, 0.6), 0.6};
+                     // auto material =
+                     //     MaterialComponent{glm::vec3(0.02, 0.17, 0.02),
+                     //     glm::vec3(0.07, 0.6, 0.07),
+                     // glm::vec3(0.6, 0.7, 0.6), 0.6};
+                     auto surfaceMaterial =
+      MaterialComponent{glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.5, 0.5, 0.5),
+                        glm::vec3(0.7, 0.7, 0.7), 25};
+  auto material = MaterialComponent{glm::vec3(0.1f), glm::vec3(1.0f),
+                                    glm::vec3(0.1f), 64.0f};
 
-  auto material =
-      MaterialComponent{glm::vec3(0.1f), glm::vec3(1.0f),
-                        glm::vec3(0.1f), 64.0f};
-  auto cubeMaterial = MaterialComponent{glm::vec3(0.02, 0.17, 0.02), glm::vec3(0.07, 0.6, 0.07), glm::vec3(0.6, 0.7, 0.6), 0.6};
+  auto cubeMaterial =
+      MaterialComponent{glm::vec3(0.02, 0.17, 0.02), glm::vec3(0.07, 0.6, 0.07),
+                        glm::vec3(0.6, 0.7, 0.6), 0.6};
   // ======== CAMERA =======
   Entity camera = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(camera, TransformComponent{});
@@ -138,9 +139,13 @@ void App::Run() {
   // ======= LIGHT =======
   Entity light = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(light,
-                            LightComponent{glm::vec3(1.0f, 1.0f, 1.0f), 1.0f});
+                            LightComponent{glm::vec3(1.0f, 0.7f, 0.1f), 1.0f});
+  mCoordinator.AddComponent(
+      light, MeshComponent{meshManager.LoadMesh("resources/objects/cube.obj")});
+  mCoordinator.AddComponent(light, ShaderComponent{lightShader});
   mCoordinator.AddComponent(light,
                             TransformComponent{glm::vec3(0.0f, 2.0f, 1.0f)});
+
   // ====== PLACE ======
   Entity surface = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(surface, MeshComponent{meshManager.LoadMesh(
@@ -151,7 +156,7 @@ void App::Run() {
   mCoordinator.AddComponent(
       surface, TransformComponent{glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f),
                                   glm::vec3(7.0f)});
-  mCoordinator.AddComponent(surface, material);
+  mCoordinator.AddComponent(surface, surfaceMaterial);
   // ====== CUBE 1 ======
   Entity cube1 = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(
@@ -172,7 +177,6 @@ void App::Run() {
                             TransformComponent{glm::vec3(-2.0f, 0.0f, 0.0f)});
   mCoordinator.AddComponent(cube2, material);
 
-  // materialSystem->Update(mCoordinator, mUniformManager);
   while (!glfwWindowShouldClose(mWindow)) {
     float currentTime = glfwGetTime();
     float deltaTime = currentTime - mLastFrameTime;
