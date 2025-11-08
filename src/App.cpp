@@ -10,6 +10,7 @@
 #include "components/TransformComponent.h"
 #include "ecs/Types.h"
 #include "glm/ext/vector_float3.hpp"
+#include "glm/trigonometric.hpp"
 #include "managers/MeshManager.h"
 #include "managers/ShaderManager.h"
 #include "render/uniforms/CameraUBO.h"
@@ -140,7 +141,10 @@ void App::Run() {
 
   auto shader = shaderManager.LoadShader("resources/shaders/default.frag",
                                          "resources/shaders/default.vert");
-  auto lightShader = shaderManager.LoadShader("resources/shaders/light.frag",
+  auto pointLightShader = shaderManager.LoadShader("resources/shaders/pointLight.frag",
+                                              "resources/shaders/default.vert");
+
+  auto spotLightShader = shaderManager.LoadShader("resources/shaders/spotLight.frag",
                                               "resources/shaders/default.vert");
 
   auto surfaceMaterial =
@@ -162,20 +166,33 @@ void App::Run() {
   mCoordinator.GetComponent<CameraComponent>(camera).mFov = 60.0f;
 
   // ======= LIGHT =======
-  // Entity light = mCoordinator.CreateEntity();
-  // mCoordinator.AddComponent(light,
-  //                           LightComponent{glm::vec3(1.0f, 0.7f,
-  //                           0.1f), 1.0f});
-  // mCoordinator.AddComponent(
-  //     light,
-  //     MeshComponent{meshManager.LoadMesh("resources/objects/cube.obj")});
-  // mCoordinator.AddComponent(light, ShaderComponent{lightShader});
-  // mCoordinator.AddComponent(light,
-  //                           TransformComponent{glm::vec3(0.0f, 2.0f, 1.0f)});
-  Entity light = mCoordinator.CreateEntity();
+  Entity directionalLight = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(
-      light, DirectionalLightComponent{glm::vec3(1.0f, 0.7f, 0.1f),
-                                       glm::vec3(1.0f, 0.5f, 0.5f)});
+      directionalLight,
+      DirectionalLightComponent{glm::vec3(1.0f, -1.0f, 0.0f),
+                                glm::vec3(0.8f, 0.2f, 0.2f), 0.5f});
+
+  Entity pointLight = mCoordinator.CreateEntity();
+  mCoordinator.AddComponent(
+      pointLight, PointLightComponent{glm::vec3(1.0f, 0.5f, 0.2f), 6.0f});
+  mCoordinator.AddComponent(pointLight,
+                            TransformComponent{glm::vec3(0.0f, 2.0f, -2.0f)});
+  mCoordinator.AddComponent(pointLight, MeshComponent{meshManager.LoadMesh(
+                                            "resources/objects/cube.obj")});
+  mCoordinator.AddComponent(pointLight, ShaderComponent{pointLightShader});
+
+  Entity spotLight = mCoordinator.CreateEntity();
+  mCoordinator.AddComponent(
+      spotLight, SpotLightComponent{glm::vec3(0.5f, 0.9f, 0.9f), 8.0f,
+                                    glm::vec3(0.0f, -1.0f, -1.0f),
+                                    glm::cos(glm::radians(30.0f)),
+                                    glm::cos(glm::radians(40.0f))});
+
+  mCoordinator.AddComponent(spotLight,
+                            TransformComponent{glm::vec3(0.0f, 3.0f, 4.0f)});
+  mCoordinator.AddComponent(spotLight, MeshComponent{meshManager.LoadMesh(
+                                            "resources/objects/cube.obj")});
+  mCoordinator.AddComponent(spotLight, ShaderComponent{spotLightShader});
 
   // ====== PLACE ======
   Entity surface = mCoordinator.CreateEntity();
