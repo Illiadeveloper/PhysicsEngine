@@ -1,42 +1,39 @@
-# Physics Engine (v0.2)
+# Physics Engine (v0.3)
 
-🚧 **Work in Progress**  
-This is an early-stage prototype of a small **Physics Engine** built with **C++** and **OpenGL**.  
-At the moment, it's mostly a framework and architectural foundation for the final system.  
-Nothing visually interesting yet — just building the core logic.
+🚀 **Active Development**  
+This version introduces major lighting improvements — support for **multiple light sources**  
+and three light types: **Directional**, **Point**, and **Spot**.  
+Still early in development, but the engine is now visually interactive.
 
 ---
 
 ## 🧠 Project Goal
-The goal of this project is to create a minimal but functional 3D physics engine from scratch —  
-with basic rendering, transformations, and physical interactions.
+The goal of this project is to build a minimal yet functional **3D physics engine** from scratch —  
+with realistic rendering, transformations, and physical interactions.
 
 ---
 
 ## 🏗️ Planned Features (v1.0)
-- [ ] Texture support
-- [ ] Collisions
-- [ ] Gravity
-- [ ] Scene management
+- [ ] Texture support  
+- [ ] Collisions  
+- [ ] Gravity  
+- [ ] Scene management  
 
 ---
 
 ## 🔧 Tech Stack
-- **Language:** C++
+- **Language:** C++  
 - **Graphics API:** OpenGL  
 - **Build System:** CMake  
-- **Architecture:** ECS
+- **Architecture:** ECS  
 
 ---
 
-## 🚀 Current Stage
-Version `0.2` — architecture design, initial code structure, and base classes.  
-- **Rendering**
-- **Simple Light**
-
----
-
-## 💡 Future Plans
-After v1.0:
-- Rigidbody simulation  
-- Material properties (friction, mass, bounce)  
+## ⚡ Current Stage — v0.3
+- **Rendering system:** improved and modularized  
+- **Lighting:**  
+  - Directional light  
+  - Point light  
+  - Spot light  
+  - Support for multiple light sources of each type  
+- **Base classes** for rendering and scene setup  
