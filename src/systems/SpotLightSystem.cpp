@@ -18,6 +18,9 @@ void SpotLightSystem::Update(Coordinator &coordinator,
 
     data.direction = lightComponent.direction;
 
+    data.cutOff = lightComponent.cutOff;
+    data.outerCutOff = lightComponent.outerCufOff;
+
     data.position = transformComponent.mPosition;
 
     uboManager.UpdateUBO("SpotLight", data);
