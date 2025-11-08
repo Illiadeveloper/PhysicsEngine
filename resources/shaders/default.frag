@@ -46,40 +46,77 @@ layout(std140, binding = 4) uniform MaterialUBO {
 } material;
 
 uniform vec3 uObjectColor;
-//
-void main() {
-  // vec3 ambient = material.ambient * light.lightColor * light.intensity;
-  // 
-  // // Diffuse 
-  // vec3 norm = normalize(outNormal);
-  // vec3 lightDir = normalize(light.position - outPos);
-  // float diff = max(dot(norm, lightDir), 0.0);
-  // vec3 diffuse = (material.diffuse * diff) * light.lightColor * light.intensity;
-  // 
-  // // Specular
-  // vec3 viewDir = normalize(outCameraPos - outPos);
-  // vec3 reflectDir = reflect(-lightDir, norm);
-  // float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-  // vec3 specular = material.specular * spec * light.lightColor * light.intensity;
-  //
-  // vec3 result = (ambient + diffuse + specular) * uObjectColor;
-  // result = clamp(result, 0.0, 1.0);
-  // FragColor = vec4(result, 1.0);
 
-  // vec3 ambient = material.ambient * light.lightColor * light.intensity;
-  // 
-  // // Diffuse 
-  // vec3 norm = normalize(outNormal);
-  // vec3 lightDir = normalize(light.direction);
-  // float diff = max(dot(norm, lightDir), 0.0);
-  // vec3 diffuse = (material.diffuse * diff) * light.lightColor * light.intensity;
-  // 
-  // // Specular
-  // vec3 viewDir = normalize(outCameraPos - outPos);
-  // vec3 reflectDir = reflect(-lightDir, norm);
-  // float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-  // vec3 specular = material.specular * spec * light.lightColor * light.intensity;
-  //
-  // vec3 result = (ambient + diffuse + specular) * uObjectColor;
-  FragColor = vec4(vec3(1.0), 1.0);
+vec3 CalcDirectionalLight(vec3 normal, vec3 viewDir) {
+    vec3 lightDir = normalize(-DirectionalLight.direction);
+    // diffuse
+    float diff = max(dot(normal, lightDir), 0.0);
+    // specular
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    // combine
+    vec3 ambient = material.ambient * DirectionalLight.lightColor * DirectionalLight.intensity;
+    vec3 diffuse = material.diffuse * diff * DirectionalLight.lightColor * DirectionalLight.intensity;
+    vec3 specular = material.specular * spec * DirectionalLight.lightColor * DirectionalLight.intensity;
+
+    return (ambient + diffuse + specular) * uObjectColor;
+}
+
+vec3 CalcPointLight(vec3 normal, vec3 fragPos, vec3 viewDir) {
+    vec3 lightDir = normalize(PointLight.position - outPos);
+    // diffuse
+    float diff = max(dot(normal, lightDir), 0.0);
+    // specular
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    // attenuation
+    float distanceToLight = length(PointLight.position - outPos);
+    float attenuation = 1.0 / (PointLight.constant + PointLight.linear * distanceToLight + PointLight.quadratic * (distanceToLight * distanceToLight));
+    // combine
+    vec3 ambient = material.ambient * PointLight.lightColor * PointLight.intensity;
+    vec3 diffuse = material.diffuse * diff * PointLight.lightColor * PointLight.intensity;
+    vec3 specular = material.specular * spec * PointLight.lightColor * PointLight.intensity;
+    
+    ambient *= attenuation;
+    diffuse *= attenuation;
+    specular *= attenuation;
+
+    return (ambient + diffuse + specular) * uObjectColor;
+}
+
+vec3 CalcSpotLight(vec3 normal, vec3 fragPos, vec3 viewDir) {
+    vec3 lightDir = normalize(SpotLight.position - fragPos);
+    // diffuse
+    float diff = max(dot(normal, lightDir), 0.0);
+    // specular
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    // attenuation
+    float distanceToLight = length(SpotLight.position - outPos);
+    float attenuation = 1.0 / (SpotLight.constant + SpotLight.linear * distanceToLight + SpotLight.quadratic * (distanceToLight * distanceToLight));
+    // spotlight intensity
+    float theta = dot(lightDir, normalize(-SpotLight.direction));
+    float epsilon = SpotLight.cutOff - SpotLight.outerCutOff;
+    float intensity = clamp((theta - SpotLight.outerCutOff) / epsilon, 0.0, 1.0);
+    // combine
+    vec3 ambient = material.ambient * SpotLight.lightColor * SpotLight.intensity;
+    vec3 diffuse = material.diffuse * diff * SpotLight.lightColor * SpotLight.intensity;
+    vec3 specular = material.specular * spec * SpotLight.lightColor * SpotLight.intensity;
+    
+    ambient *= attenuation * intensity;
+    diffuse *= attenuation * intensity;
+    specular *= attenuation * intensity;
+
+    return (ambient + diffuse + specular) * uObjectColor;
+}
+
+void main() {
+  vec3 norm = normalize(outNormal);
+  vec3 viewDir = normalize(outCameraPos - outPos);
+
+  vec3 result = CalcDirectionalLight(norm, viewDir);
+  result += CalcPointLight(norm, outPos, viewDir);
+  result += CalcSpotLight(norm, outPos, viewDir);
+
+  FragColor = vec4(result, 1.0);
 }
