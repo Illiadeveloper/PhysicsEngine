@@ -1,29 +1,33 @@
 #include "systems/SpotLightSystem.h"
 #include "render/uniforms/SpotLightUBO.h"
+#include <iostream>
 
 void SpotLightSystem::Update(Coordinator &coordinator,
                          UniformBufferManager &uboManager) {
-  for (auto const &entity : mEntities) {
+  SpotLightUBO uboData{};
+
+  int i = 0;
+  for (auto it = mEntities.begin();
+       it != mEntities.end() && i < MAX_SPOTS; ++it) {
     auto &transformComponent =
-        coordinator.GetComponent<TransformComponent>(entity);
-    auto &lightComponent = coordinator.GetComponent<SpotLightComponent>(entity);
+        coordinator.GetComponent<TransformComponent>(*it);
+    auto &lightComponent = coordinator.GetComponent<SpotLightComponent>(*it);
 
-    SpotLightUBO data{};
-    data.intensity = lightComponent.intensity;
-    data.lightColor = lightComponent.lightColor;
+    uboData.data[i].intensity = lightComponent.intensity;
+    uboData.data[i].lightColor = lightComponent.lightColor;
     
-    data.constant = lightComponent.constant;
-    data.linear = lightComponent.linear;
-    data.quadratic = lightComponent.quadratic;
+    uboData.data[i].constant = lightComponent.constant;
+    uboData.data[i].linear = lightComponent.linear;
+    uboData.data[i].quadratic = lightComponent.quadratic;
 
-    data.direction = lightComponent.direction;
+    uboData.data[i].direction = lightComponent.direction;
 
-    data.cutOff = lightComponent.cutOff;
-    data.outerCutOff = lightComponent.outerCufOff;
+    uboData.data[i].cutOff = lightComponent.cutOff;
+    uboData.data[i].outerCutOff = lightComponent.outerCufOff;
 
-    data.position = transformComponent.mPosition;
-
-    uboManager.UpdateUBO("SpotLight", data);
-    break;
+    uboData.data[i].position = transformComponent.mPosition;
+    i++;
   }
+  uboData.size = i;
+  uboManager.UpdateUBO("SpotLight", uboData);
 }

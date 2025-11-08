@@ -141,10 +141,7 @@ void App::Run() {
 
   auto shader = shaderManager.LoadShader("resources/shaders/default.frag",
                                          "resources/shaders/default.vert");
-  auto pointLightShader = shaderManager.LoadShader("resources/shaders/pointLight.frag",
-                                              "resources/shaders/default.vert");
-
-  auto spotLightShader = shaderManager.LoadShader("resources/shaders/spotLight.frag",
+  auto lightShader = shaderManager.LoadShader("resources/shaders/color.frag",
                                               "resources/shaders/default.vert");
 
   auto surfaceMaterial =
@@ -166,39 +163,52 @@ void App::Run() {
   mCoordinator.GetComponent<CameraComponent>(camera).mFov = 60.0f;
 
   // ======= LIGHT =======
-  Entity directionalLight1 = mCoordinator.CreateEntity();
-  mCoordinator.AddComponent(
-      directionalLight1,
-      DirectionalLightComponent{glm::vec3(1.0f, -1.0f, 0.0f),
-                                glm::vec3(0.8f, 0.2f, 0.2f), 0.5f});
+  // Entity directionalLight1 = mCoordinator.CreateEntity();
+  // mCoordinator.AddComponent(
+  //     directionalLight1,
+  //     DirectionalLightComponent{glm::vec3(1.0f, -1.0f, 0.0f),
+  //                               glm::vec3(0.8f, 0.2f, 0.2f), 0.5f});
+  //
+  // Entity directionalLight2 = mCoordinator.CreateEntity();
+  // mCoordinator.AddComponent(
+  //     directionalLight2,
+  //     DirectionalLightComponent{glm::vec3(-1.0f, -1.0f, 0.0f),
+  //                               glm::vec3(0.2f, 0.2f, 0.8f), 0.5f});
 
-  Entity directionalLight2 = mCoordinator.CreateEntity();
+  Entity pointLight1 = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(
-      directionalLight2,
-      DirectionalLightComponent{glm::vec3(-1.0f, -1.0f, 0.0f),
-                                glm::vec3(0.2f, 0.2f, 0.8f), 0.5f});
-
-  Entity pointLight = mCoordinator.CreateEntity();
-  mCoordinator.AddComponent(
-      pointLight, PointLightComponent{glm::vec3(1.0f, 0.5f, 0.2f), 6.0f});
-  mCoordinator.AddComponent(pointLight,
+      pointLight1, PointLightComponent{glm::vec3(1.0f, 0.5f, 0.2f), 6.0f});
+  mCoordinator.AddComponent(pointLight1,
                             TransformComponent{glm::vec3(0.0f, 2.0f, -2.0f)});
-  mCoordinator.AddComponent(pointLight, MeshComponent{meshManager.LoadMesh(
+  mCoordinator.AddComponent(pointLight1, MeshComponent{meshManager.LoadMesh(
                                             "resources/objects/cube.obj")});
-  mCoordinator.AddComponent(pointLight, ShaderComponent{pointLightShader});
-
-  Entity spotLight = mCoordinator.CreateEntity();
   mCoordinator.AddComponent(
-      spotLight, SpotLightComponent{glm::vec3(0.5f, 0.9f, 0.9f), 8.0f,
-                                    glm::vec3(0.0f, -1.0f, -1.0f),
-                                    glm::cos(glm::radians(30.0f)),
-                                    glm::cos(glm::radians(40.0f))});
+      pointLight1, ShaderComponent{lightShader, glm::vec3(1.0f, 0.5f, 0.2f)});
 
-  mCoordinator.AddComponent(spotLight,
-                            TransformComponent{glm::vec3(0.0f, 3.0f, 4.0f)});
-  mCoordinator.AddComponent(spotLight, MeshComponent{meshManager.LoadMesh(
+
+  Entity pointLight2 = mCoordinator.CreateEntity();
+  mCoordinator.AddComponent(
+      pointLight2, PointLightComponent{glm::vec3(0.2f, 0.5f, 1.0f), 6.0f});
+  mCoordinator.AddComponent(pointLight2,
+                            TransformComponent{glm::vec3(0.0f, 2.0f, 2.0f)});
+  mCoordinator.AddComponent(pointLight2, MeshComponent{meshManager.LoadMesh(
                                             "resources/objects/cube.obj")});
-  mCoordinator.AddComponent(spotLight, ShaderComponent{spotLightShader});
+  mCoordinator.AddComponent(
+      pointLight2, ShaderComponent{lightShader, glm::vec3(0.2f, 0.5f, 1.0f)});
+
+  // Entity spotLight = mCoordinator.CreateEntity();
+  // mCoordinator.AddComponent(
+  //     spotLight, SpotLightComponent{glm::vec3(0.5f, 0.9f, 0.9f), 8.0f,
+  //                                   glm::vec3(0.0f, -1.0f, -1.0f),
+  //                                   glm::cos(glm::radians(30.0f)),
+  //                                   glm::cos(glm::radians(40.0f))});
+  //
+  // mCoordinator.AddComponent(spotLight,
+  //                           TransformComponent{glm::vec3(0.0f, 3.0f, 4.0f)});
+  // mCoordinator.AddComponent(spotLight, MeshComponent{meshManager.LoadMesh(
+  //                                          "resources/objects/cube.obj")});
+  // mCoordinator.AddComponent(
+  //     spotLight, ShaderComponent{lightShader, glm::vec3(0.5f, 0.9f, 0.9f)});
 
   // ====== PLACE ======
   Entity surface = mCoordinator.CreateEntity();

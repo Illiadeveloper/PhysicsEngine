@@ -1,6 +1,5 @@
 #pragma once
 #include "glm/ext/vector_float3.hpp"
-#include "glm/ext/vector_int4.hpp"
 
 constexpr int MAX_DIRECTIONALS = 4;
 
@@ -13,7 +12,7 @@ struct DirectionalLightData {
 };
 
 struct DirectionalLightUBO {
-  int lightCount; // x = lightCount
+  int size; 
   float _pad1, _pad2, _pad3;
-  alignas(16) DirectionalLightData directionalLights[MAX_DIRECTIONALS] ;
+  alignas(16) DirectionalLightData data[MAX_DIRECTIONALS] ;
 };

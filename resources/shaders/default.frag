@@ -137,14 +137,12 @@ void main() {
   for(int i = 0; i < DirectionalLights.size; ++i) {
     result += CalcDirectionalLight(DirectionalLights.data[i], norm, viewDir);
   }
-  for(int = 0; i < PointLights.size; ++i) {
+  for(int i = 0; i < PointLights.size; ++i) {
     result += CalcPointLight(PointLights.data[i], norm, outPos, viewDir);
   }
-  for(int = 0; i < SpotLight.size; ++i) {
-    result += CalcPointLight(SpotLights.data[i], norm, outPos, viewDir);
+  for(int i = 0; i < SpotLights.size; ++i) {
+    result += CalcSpotLight(SpotLights.data[i], norm, outPos, viewDir);
   }
-  // result += CalcPointLight(norm, outPos, viewDir);
-  // result += CalcSpotLight(norm, outPos, viewDir);
 
   FragColor = vec4(result, 1.0);
 }

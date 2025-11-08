@@ -3,23 +3,27 @@
 #include "render/uniforms/PointLightUBO.h"
 
 void PointLightSystem::Update(Coordinator &coordinator,
-                         UniformBufferManager &uboManager) {
-  for (auto const &entity : mEntities) {
+                              UniformBufferManager &uboManager) {
+  PointLightUBO uboData{};
+
+  int i = 0;
+  for (auto it = mEntities.begin();
+       it != mEntities.end() && i < MAX_POINTS; ++it) {
     auto &transformComponent =
-        coordinator.GetComponent<TransformComponent>(entity);
-    auto &lightComponent = coordinator.GetComponent<PointLightComponent>(entity);
+        coordinator.GetComponent<TransformComponent>(*it);
+    auto &lightComponent = coordinator.GetComponent<PointLightComponent>(*it);
 
-    PointLightUBO data{};
-    data.intensity = lightComponent.intensity;
-    data.lightColor = lightComponent.lightColor;
+    uboData.data[i].intensity = lightComponent.intensity;
+    uboData.data[i].lightColor = lightComponent.lightColor;
 
-    data.constant = lightComponent.constant;
-    data.linear = lightComponent.linear;
-    data.quadratic = lightComponent.quadratic;
+    uboData.data[i].constant = lightComponent.constant;
+    uboData.data[i].linear = lightComponent.linear;
+    uboData.data[i].quadratic = lightComponent.quadratic;
 
-    data.position = transformComponent.mPosition;
-
-    uboManager.UpdateUBO("PointLight", data);
-    break;
+    uboData.data[i].position = transformComponent.mPosition;
+    i++;
   }
+  
+  uboData.size = i;
+  uboManager.UpdateUBO("PointLight", uboData);
 }

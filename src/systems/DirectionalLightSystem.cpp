@@ -7,18 +7,18 @@ void DirectionalLightSystem::Update(Coordinator &coordinator,
                                     UniformBufferManager &uboManager) {
   DirectionalLightUBO uboData{};
 
-  int count_it = 0;
+  int i = 0;
   for (auto it = mEntities.begin();
-       it != mEntities.end() && count_it < MAX_DIRECTIONALS; ++it) {
+       it != mEntities.end() && i < MAX_DIRECTIONALS; ++it) {
     auto &lightComponent =
         coordinator.GetComponent<DirectionalLightComponent>(*it);
 
-    uboData.directionalLights[count_it].intensity = lightComponent.intensity;
-    uboData.directionalLights[count_it].lightColor = lightComponent.lightColor;
-    uboData.directionalLights[count_it].direction = lightComponent.direction;
-    count_it++;
+    uboData.data[i].intensity = lightComponent.intensity;
+    uboData.data[i].lightColor = lightComponent.lightColor;
+    uboData.data[i].direction = lightComponent.direction;
+    i++;
   }
 
-  uboData.lightCount = count_it;
+  uboData.size = i;
   uboManager.UpdateUBO("DirectionalLight", uboData);
 }
